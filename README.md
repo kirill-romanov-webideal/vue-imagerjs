@@ -1,4 +1,6 @@
-# vue-imagerjs
+# ac-imagerjs
+
+Simple image editing, saving in selected mimeType.
 
 ## Project setup
 ```
