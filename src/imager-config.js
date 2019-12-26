@@ -1,3 +1,7 @@
+/**
+ * ImagerJs wiki: https://github.com/carstenschaefer/ImagerJs/wiki
+ */
+
 const defaultPluginsConfig = {
   Rotate: {
     controlsCss: {

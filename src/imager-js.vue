@@ -1,7 +1,6 @@
 <template>
-  <div class="ac-simple-imager-editor">
-      <div class="image-container" ref="img_container">
-      </div>
+    <div class="image-container">
+      <img ref="img_element" crossorigin="anonymous" :src="image_url" v-bind="image_attrs">
     </div>
 </template>
 
@@ -15,7 +14,10 @@ export default {
   name: 'imager-js',
 
   props: {
-      image_url: String,
+      image_url: {
+        type: String,
+        default: ''
+      },
 
       image_attrs: {
         type: Object,
@@ -32,7 +34,8 @@ export default {
     return {
         // instance of ImagerJs
         imager: null,
-        imagerJsNamespace: {}
+        imagerJsNamespace: {},
+        imageIsLoaded: false
     }
   },
 
@@ -41,8 +44,26 @@ export default {
   },
 
   destroyed() {
+    // Remove iamgejs element
+    if (this.imager.$selectorContainer) this.imager.$selectorContainer.remove()
     this.imager.remove(true)
     this.imager = null
+  },
+
+  watch: {
+    image_url(value) {
+      this.stopEditing()
+
+      if (value) {
+        this.imageIsLoaded = false;
+        this.$nextTick(() => {
+          this.imageIsLoaded = true
+          this.startEditing()
+        })
+      } else {
+        this.startSelector()
+      }
+    }
   },
 
   methods: {
@@ -50,11 +71,10 @@ export default {
          * Create imager instance and start editing 
          */
         set_init_imager() {
-          const info = imagerjs({
+          imagerjs({
             $,
             namespace: this.imagerJsNamespace
           })
-
 
           const save_config = {
             Save: {
@@ -62,46 +82,38 @@ export default {
               uploadFunction: this.saveImage
             }
           }
+
           const options = CreateOptions({
             pluginsConfig: save_config
           })
 
-          const image = new Image()
-          image.src = this.image_url || "";
-          image.width = this.image_attrs.width || 250;
-          image.height = this.image_attrs.height || 250;
-          image.setAttribute('crossorigin', 'anonymous') 
+          const imager = new this.imagerJsNamespace.Imager(this.$refs.img_element, options);
+          this.imager = imager
 
-          image.onload = this.$nextTick(() => {
-            const $image_container = $(this.$refs.img_container)
-            $image_container.append($(image))
-            const imager = new this.imagerJsNamespace.Imager($image_container.find('img'), options);
+          if (this.image_url) {
+            imager.on('ready', () => {
+              if (this.imageIsLoaded) return;
+              this.imageIsLoaded = true
+              this.startEditing()
+            })
+          } else {
+            this.startSelector()
+          }
 
-            this.imager = imager
-
-            if (this.image_url) {
-              imager.on('ready', () => {
-                this.startEditing()
-              })
-            } else {
-              this.startSelector()
-            }
-
-            imager.on('editStart', () => {
-              imager.$imageElement.css({
-                minWidth: 'auto',
-                minHeight: 'auto'
-              });
-              const quality_selector = new this.imagerJsNamespace.ImagerQualitySelector(imager, options.quality);
-              const quality_container = $('<div class="imager-quality-standalone"></div>');
-              
-              quality_container.append(quality_selector.getElement());
-              imager.$editContainer.append(quality_container);
-
-              quality_selector.show();
-              quality_selector.update();
+          this.imager.on('editStart', () => {
+            this.imager.$imageElement.css({
+              minWidth: 'auto',
+              minHeight: 'auto'
             });
-          })
+            const quality_selector = new this.imagerJsNamespace.ImagerQualitySelector(this.imager, options.quality);
+            const quality_container = $('<div class="imager-quality-standalone"></div>');
+            
+            quality_container.append(quality_selector.getElement());
+            this.imager.$editContainer.append(quality_container);
+
+            quality_selector.show();
+            quality_selector.update();
+          });
         },
 
         startEditing() {
@@ -124,7 +136,8 @@ export default {
 }
 </script>
 <style scoped>
-.ac-simple-imager-editor {
-  margin: 50px
+img {
+  width: 250px;
+  height: 250px;
 }
 </style>
