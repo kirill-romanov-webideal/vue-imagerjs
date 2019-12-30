@@ -1,15 +1,24 @@
 {
-  "name": "ac-imagerjs",
-  "version": "1.0.1",
+  "name": "vue-imagerjs",
+  "version": "1.0.35",
   "description": "Simple image editing (carstenschaefer/ImagerJs)",
   "author": "https://github.com/kirill-romanov-webideal",
   "license": "MIT",
   "private": false,
+  "main": "./src",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "lib": "vue-cli-service build --target lib --name imagerJs ./src/index.js"
   },
+  "files": [
+    "dist/*",
+    "src/*",
+    "public/*",
+    "*.json",
+    "*.js"
+  ],
   "dependencies": {
     "core-js": "^3.4.3",
     "jquery": "^3.4.1",
